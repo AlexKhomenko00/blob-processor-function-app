@@ -1,14 +1,15 @@
 import { app, InvocationContext, Timer } from '@azure/functions';
 import { BlobServiceClient } from '@azure/storage-blob';
-import { DefaultAzureCredential } from '@azure/identity';
+import { ManagedIdentityCredential } from '@azure/identity';
 
 const STORAGE_ACCOUNT = process.env.STORAGE_ACCOUNT_NAME || 'your-storage-account';
+const CLIENT_ID = process.env.DATA_STORAGE_CONNECTION__clientId;
 const RETENTION_DAYS = 30;
 
 async function cleanup(myTimer: Timer, context: InvocationContext): Promise<void> {
     context.log('Starting daily cleanup...');
-    
-    const credential = new DefaultAzureCredential();
+
+    const credential = new ManagedIdentityCredential({ clientId: CLIENT_ID });
     const url = `https://${STORAGE_ACCOUNT}.blob.core.windows.net`;
     const blobServiceClient = new BlobServiceClient(url, credential);
     
