@@ -1,8 +1,9 @@
-.PHONY: help tf-init tf-plan tf-apply tf-destroy deploy deploy-all save-outputs clean
+.PHONY: help tf-init tf-plan tf-apply tf-destroy deploy deploy-all save-outputs clean backend-create
 
 # Default target
 help:
 	@echo "Available targets:"
+	@echo "  backend-create - Initialize remote backend for Terraform"
 	@echo "  tf-init        - Initialize Terraform"
 	@echo "  tf-plan        - Run Terraform plan"
 	@echo "  tf-apply       - Apply Terraform changes and save outputs"
@@ -14,24 +15,38 @@ help:
 
 # Terraform directory
 TF_DIR := terraform
+ENV_FILE := .terraform-backend.env
 OUTPUTS_FILE := .tfoutputs
+RESOURCE_GROUP ?= tfstate
+LOCATION ?= westeurope
+STATE_KEY ?= terraform.tfstate
 
-# Initialize Terraform
+# Create terraform backend
+backend-create: 
+	@$(TF_DIR)/create-backend.sh $(RESOURCE_GROUP) $(LOCATION) $(STATE_KEY)
+
+# Initialize terraform
 tf-init:
-	cd $(TF_DIR) && terraform init
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "❌ Backend not configured. Run: make create-backend"; \
+		exit 1; \
+	fi
+	@echo "Initializing Terraform..."
+	@cd $(TF_DIR) && . ../.terraform-backend.env && \
+		terraform init \
+			-backend-config="storage_account_name=$$TF_BACKEND_STORAGE_ACCOUNT" \
+			-backend-config="container_name=$$TF_BACKEND_CONTAINER" \
+			-backend-config="key=$$TF_BACKEND_KEY"
 
-# Plan Terraform changes
-tf-plan:
-	cd $(TF_DIR) && terraform plan
+tf-plan: tf-init
+	@cd $(TF_DIR) && . ./.terraform-backend.env && terraform plan
 
-# Apply Terraform changes and save outputs
-tf-apply:
-	cd $(TF_DIR) && terraform apply
+tf-apply: tf-init
+	@cd $(TF_DIR) && . ./.terraform-backend.env && terraform apply
 	@$(MAKE) save-outputs
 
-# Destroy Terraform resources
-tf-destroy:
-	cd $(TF_DIR) && terraform destroy
+tf-destroy: tf-init
+	@cd $(TF_DIR) && . ./.terraform-backend.env && terraform destroy
 
 # Save Terraform outputs to file
 save-outputs:
@@ -80,4 +95,8 @@ deploy-all:
 
 # Clean generated files
 clean:
-	rm -f $(OUTPUTS_FILE)
+	@rm -f $(OUTPUTS_FILE)
+	@rm -f $(ENV_FILE)
+	@echo "✅ Cleaned up generated files"
+
+.DEFAULT_GOAL := help

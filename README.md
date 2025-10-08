@@ -16,10 +16,28 @@ Processes blobs in storage containers via Azure Functions with monitoring enable
 
 All Terraform and deployment commands are wrapped in the provided `Makefile`.
 
+### Prerequisites
+
+- Azure CLI installed and authenticated (`az login`)
+- Terraform installed
+- Node.js and npm (for function deployment)
+
+### Setup Remote Backend
+
+First, create the Azure Storage backend for Terraform state:
+
+```bash
+make backend-create                                    # Create backend with defaults
+# Or customize:
+make backend-create RESOURCE_GROUP=my-tfstate LOCATION=eastus
+```
+
+This creates a storage account, container, and generates `.terraform-backend.env` with configuration.
+
 ### Setup Terraform
 
 ```bash
-make tf-init       # Initialize Terraform
+make tf-init       # Initialize Terraform with remote backend
 make tf-plan       # Preview changes
 make tf-apply      # Apply changes and save outputs
 ```

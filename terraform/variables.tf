@@ -5,7 +5,7 @@ variable "environments" { # Fixed typo
     asp_size            = string
     account_tier        = string
     account_replication = string
-    logs_retention_days = string
+    logs_retention_days = number
   }))
   description = "Map of environments with their configurations"
 }

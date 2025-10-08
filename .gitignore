@@ -19,3 +19,7 @@
 # OS generated files
 Thumbs.db
 Desktop.ini
+.env
+*.env
+.terraform-backend.env
+.terraform/

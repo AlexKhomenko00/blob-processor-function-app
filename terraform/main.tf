@@ -9,6 +9,10 @@ terraform {
       version = "~> 0.9"
     }
   }
+
+  backend "azurerm" {
+    use_azuread_auth = true
+  }
 }
 
 provider "azurerm" {
@@ -66,11 +70,11 @@ module "function_app" {
     name     = azurerm_resource_group.rg_blob_etl[each.key].name
     location = azurerm_resource_group.rg_blob_etl[each.key].location
   }
-  asp_size                     = each.value.asp_size
-  asp_tier                     = each.value.asp_tier
-  app_insights_conn_str        = module.monitoring[each.key].apli_connection_string
-  app_insights_key             = module.monitoring[each.key].instrumentation_key
-  storage_account_name         = module.storage_account[each.key].storage_account_name
-  user_assigned_identity_id    = azurerm_user_assigned_identity.betl_identity[each.key].id
+  asp_size                         = each.value.asp_size
+  asp_tier                         = each.value.asp_tier
+  app_insights_conn_str            = module.monitoring[each.key].apli_connection_string
+  app_insights_key                 = module.monitoring[each.key].instrumentation_key
+  storage_account_name             = module.storage_account[each.key].storage_account_name
+  user_assigned_identity_id        = azurerm_user_assigned_identity.betl_identity[each.key].id
   user_assigned_identity_client_id = azurerm_user_assigned_identity.betl_identity[each.key].client_id
 }
